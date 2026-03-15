@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import FileUploader from "./components/FileUploader";
 import StudentManager from "./components/StudentManager";
 import ResultTable from "./components/ResultTable";
@@ -9,7 +9,6 @@ import { exportToExcel } from "./lib/excelExporter";
 import type {
   StudentConfig,
   ClassRecord,
-  UnclassifiedMessage,
   ChatMessage,
 } from "./lib/types";
 
@@ -42,9 +41,8 @@ export default function App() {
   const [studentConfig, setStudentConfig] =
     useState<StudentConfig>(loadStudentConfig);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [records, setRecords] = useState<ClassRecord[]>([]);
-  const [unclassified, setUnclassified] = useState<UnclassifiedMessage[]>([]);
-  const [totalMessages, setTotalMessages] = useState(0);
+  const [manualRecords, setManualRecords] = useState<ClassRecord[]>([]);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState("");
 
   const availableMonths = useMemo(
@@ -62,32 +60,36 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }, []);
 
-  useEffect(() => {
-    if (filteredMessages.length === 0) {
-      setRecords([]);
-      setUnclassified([]);
-      setTotalMessages(0);
-      return;
-    }
-    const result = analyzeMessages(filteredMessages, studentConfig);
-    setRecords(result.records);
-    setUnclassified(result.unclassified);
-    setTotalMessages(result.totalMessages);
+  const analysisResult = useMemo(() => {
+    if (filteredMessages.length === 0) return { records: [], unclassified: [], totalMessages: 0 };
+    return analyzeMessages(filteredMessages, studentConfig);
   }, [filteredMessages, studentConfig]);
+
+  const records = useMemo(
+    () => [...analysisResult.records, ...manualRecords],
+    [analysisResult.records, manualRecords],
+  );
+  const unclassified = useMemo(
+    () => analysisResult.unclassified.filter((u) => !dismissedIds.has(u.id)),
+    [analysisResult.unclassified, dismissedIds],
+  );
+  const totalMessages = analysisResult.totalMessages;
 
   const handleFileLoaded = useCallback((text: string) => {
     const parsed = parseKakaoChat(text);
     setMessages(parsed);
     setSelectedMonth("");
+    setManualRecords([]);
+    setDismissedIds(new Set());
   }, []);
 
   const handleResolve = useCallback((id: string, record: ClassRecord) => {
-    setRecords((prev) => [...prev, record]);
-    setUnclassified((prev) => prev.filter((u) => u.id !== id));
+    setManualRecords((prev) => [...prev, record]);
+    setDismissedIds((prev) => new Set(prev).add(id));
   }, []);
 
   const handleDismiss = useCallback((id: string) => {
-    setUnclassified((prev) => prev.filter((u) => u.id !== id));
+    setDismissedIds((prev) => new Set(prev).add(id));
   }, []);
 
   const handleAddStudent = useCallback((name: string) => {
