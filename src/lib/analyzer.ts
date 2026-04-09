@@ -9,11 +9,38 @@ import type {
 const START_KEYWORDS = ["시작", "들어갑", "입장", "시작합"];
 const END_KEYWORDS = ["종료", "끝", "마침", "퇴장", "끝났", "마쳤"];
 
+// 이 패턴이 포함된 메시지는 실제 수업 시작/종료가 아닌 보고·안내성 메시지
+const EXCLUDE_PATTERNS = [
+  // 종료 관련 예외
+  "종료예정",
+  "종료일",
+  "종료까지",
+  "종료일자",
+  // 시작 관련 예외
+  "시작예정",
+  "시작일",
+  "시작일자",
+  // 보고·안내 맥락 키워드
+  "보고드립니다",
+  "보고합니다",
+  "예정입니다",
+  "대상자",
+];
+
+function isExcludedMessage(content: string): boolean {
+  const noSpace = content.replace(/\s/g, "");
+  return EXCLUDE_PATTERNS.some(
+    (pattern) => noSpace.includes(pattern.replace(/\s/g, ""))
+  );
+}
+
 function isStartMessage(content: string): boolean {
+  if (isExcludedMessage(content)) return false;
   return START_KEYWORDS.some((kw) => content.includes(kw));
 }
 
 function isEndMessage(content: string): boolean {
+  if (isExcludedMessage(content)) return false;
   return END_KEYWORDS.some((kw) => content.includes(kw));
 }
 
