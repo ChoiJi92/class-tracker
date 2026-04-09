@@ -1,0 +1,22 @@
+{
+  "name": "수업 관리 트래커",
+  "short_name": "수업트래커",
+  "description": "카카오톡 대화를 분석하여 수업 기록을 자동 정리합니다",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
