@@ -114,16 +114,16 @@ export default function UnclassifiedList({ items, studentConfig, onResolve, onDi
               </div>
             </div>
             {editingId === item.id && (
-              <div className="mt-3 flex gap-2 items-center">
-                <select value={selectedStudent} onChange={(e) => setSelectedStudent(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm">
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                <select value={selectedStudent} onChange={(e) => setSelectedStudent(e.target.value)} className="flex-1 min-w-[120px] border rounded-lg px-2 py-2 text-sm">
                   <option value="">학생 선택</option>
                   {studentConfig.students.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <select value={selectedType} onChange={(e) => setSelectedType(e.target.value as "start" | "end")} className="border rounded-lg px-2 py-1.5 text-sm">
+                <select value={selectedType} onChange={(e) => setSelectedType(e.target.value as "start" | "end")} className="border rounded-lg px-2 py-2 text-sm">
                   <option value="start">수업 시작</option>
                   <option value="end">수업 종료</option>
                 </select>
-                <button onClick={() => handleResolve(item)} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700">확인</button>
+                <button onClick={() => handleResolve(item)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">확인</button>
               </div>
             )}
           </div>

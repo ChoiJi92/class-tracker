@@ -70,13 +70,13 @@ export default function StudentManager({ config, onChange }: Props) {
       )}
 
       <h3 className="text-sm font-semibold mb-2 text-gray-600">별명 등록</h3>
-      <div className="flex gap-2 mb-3">
-        <input value={nickName} onChange={(e) => setNickName(e.target.value)} placeholder='별명 (예: 길동)' className="flex-1 border rounded-lg px-3 py-2 text-sm" />
-        <select value={nickTarget} onChange={(e) => setNickTarget(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+      <div className="flex flex-wrap gap-2 mb-3">
+        <input value={nickName} onChange={(e) => setNickName(e.target.value)} placeholder='별명 (예: 길동)' className="flex-1 min-w-[100px] border rounded-lg px-3 py-2 text-sm" />
+        <select value={nickTarget} onChange={(e) => setNickTarget(e.target.value)} className="flex-1 min-w-[100px] border rounded-lg px-3 py-2 text-sm">
           <option value="">학생 선택</option>
           {config.students.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <button onClick={addNickname} className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700">
+        <button onClick={addNickname} className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 w-full sm:w-auto">
           등록
         </button>
       </div>

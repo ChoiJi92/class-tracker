@@ -56,15 +56,15 @@ export default function FileUploader({ onFileLoaded }: Props) {
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
-        className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-6 sm:p-10 text-center cursor-pointer transition-colors ${
           isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"
         }`}
       >
         <input ref={inputRef} type="file" accept=".txt,.csv" onChange={handleInputChange} className="hidden" id="file-input" />
         <label htmlFor="file-input" className="cursor-pointer">
           <div className="text-4xl mb-3">📄</div>
-          <p className="text-lg font-medium">카카오톡 대화 파일(.txt/.csv)을 드래그하거나 클릭하여 업로드</p>
-          <p className="text-sm text-gray-500 mt-1">PC 카카오톡에서 Ctrl+S로 저장한 파일 또는 모바일 내보내기 파일</p>
+          <p className="text-base sm:text-lg font-medium">카카오톡 대화 파일(.txt/.csv)을 드래그하거나 클릭하여 업로드</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">PC에서 Ctrl+S로 저장한 파일 또는 모바일 내보내기 파일</p>
           {fileName && <p className="mt-3 text-sm text-blue-600 font-medium">업로드됨: {fileName}</p>}
         </label>
       </div>
