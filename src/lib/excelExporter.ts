@@ -11,7 +11,7 @@ function formatSession(r: ClassRecord): string {
   return `${r.date}(${start}~${end})`;
 }
 
-export function exportToExcel(records: ClassRecord[]) {
+export function buildWorkbook(records: ClassRecord[]): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
   // 선생님+학생별 그룹화
@@ -57,5 +57,15 @@ export function exportToExcel(records: ClassRecord[]) {
 
   XLSX.utils.book_append_sheet(wb, ws, "수업 기록");
 
+  return wb;
+}
+
+export function exportToExcel(records: ClassRecord[]) {
+  const wb = buildWorkbook(records);
   XLSX.writeFile(wb, `수업기록_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+export function generateExcelBuffer(records: ClassRecord[]): Uint8Array {
+  const wb = buildWorkbook(records);
+  return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as Uint8Array;
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import FileUploader from "./components/FileUploader";
 import StudentManager from "./components/StudentManager";
 import ResultTable from "./components/ResultTable";
@@ -13,6 +13,28 @@ import type {
 } from "./lib/types";
 
 const STORAGE_KEY = "class-tracker-students";
+const CONFIG_ID_KEY = "class-tracker-config-id";
+
+function getOrCreateConfigId(): string {
+  let id = localStorage.getItem(CONFIG_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(CONFIG_ID_KEY, id);
+  }
+  return id;
+}
+
+async function syncConfigToServer(configId: string, config: StudentConfig) {
+  try {
+    await fetch(`/api/config?id=${configId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config),
+    });
+  } catch {
+    // 오프라인이거나 서버 미설정 시 무시
+  }
+}
 
 function loadStudentConfig(): StudentConfig {
   try {
@@ -44,6 +66,16 @@ export default function App() {
   const [manualRecords, setManualRecords] = useState<ClassRecord[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [configId] = useState(getOrCreateConfigId);
+  const [showShortcutInfo, setShowShortcutInfo] = useState(false);
+  const [configSynced, setConfigSynced] = useState(false);
+
+  // 학생 설정이 바뀔 때마다 서버에 동기화
+  useEffect(() => {
+    if (studentConfig.students.length > 0) {
+      syncConfigToServer(configId, studentConfig).then(() => setConfigSynced(true));
+    }
+  }, [configId, studentConfig]);
 
   const availableMonths = useMemo(
     () => getAvailableMonths(messages),
@@ -171,6 +203,68 @@ export default function App() {
           onAddStudent={handleAddStudent}
         />
         <ResultTable records={records} />
+
+        {/* iOS 단축어 설정 */}
+        <div className="bg-white rounded-xl border p-4">
+          <button
+            onClick={() => setShowShortcutInfo(!showShortcutInfo)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <span className="text-sm font-medium text-gray-700">
+              iOS 단축어 설정 (모바일 자동화)
+            </span>
+            <span className="text-gray-400 text-xs">
+              {showShortcutInfo ? "닫기" : "열기"}
+            </span>
+          </button>
+          {showShortcutInfo && (
+            <div className="mt-4 space-y-3 text-sm text-gray-600">
+              <p>카카오톡에서 대화 내보내기 → 공유 시트에서 단축어 실행 → 엑셀 자동 생성</p>
+
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <p className="font-medium text-gray-700">내 설정 ID:</p>
+                <div className="flex items-center gap-2">
+                  <code className="bg-gray-200 px-2 py-1 rounded text-xs flex-1 break-all">
+                    {configId}
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(configId)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs shrink-0"
+                  >
+                    복사
+                  </button>
+                </div>
+                {configSynced && (
+                  <p className="text-green-600 text-xs">서버에 학생 설정 동기화됨</p>
+                )}
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <p className="font-medium text-gray-700">API 엔드포인트:</p>
+                <code className="bg-gray-200 px-2 py-1 rounded text-xs block break-all">
+                  POST {window.location.origin}/api/analyze
+                </code>
+                <p className="text-xs text-gray-500">
+                  Body: {"{"} "text": "채팅내용", "configId": "설정ID", "month": "2026-04" (선택) {"}"}
+                </p>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-3 space-y-1">
+                <p className="font-medium text-blue-700">iOS 단축어 만들기:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs text-blue-600">
+                  <li>단축어 앱 → + → 공유 시트에서 받기 (텍스트 파일)</li>
+                  <li>"파일 내용 가져오기" 액션 추가</li>
+                  <li>"URL 내용 가져오기" 액션 추가:
+                    <br />URL: {window.location.origin}/api/analyze
+                    <br />방법: POST / JSON
+                    <br />text: 파일 내용, configId: 위 설정 ID
+                  </li>
+                  <li>"파일에 저장" 액션 추가 (iCloud/파일 앱)</li>
+                </ol>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
